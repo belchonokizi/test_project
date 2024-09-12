@@ -40,4 +40,26 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+//задача для запуска упавших тестов
+task rerunTests(type: Exec) {
+    def testFilePath = "src/test/resources/failed-tests.txt"
+    def os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentOperatingSystem;
+
+    def terminal = os.isWindows() ? "cmd" : "bash"
+    def commandKey = os.isWindows() ? "/c" : "-c"
+    if (new File(testFilePath).exists()) {
+        def testFileContent = new File(testFilePath).text.trim()
+        if (!testFileContent.isEmpty()) {
+            commandLine terminal, commandKey, "gradlew clean test $testFileContent"
+        } else {
+            commandLine terminal, commandKey, "echo test file is empty"
+        }
+    } else {
+        commandLine terminal, commandKey, "echo test file does not exist"
+    }
 }
